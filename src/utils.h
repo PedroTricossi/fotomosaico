@@ -3,5 +3,10 @@
 
 void** allocateMatrixMemory(int size, long int width, long int height);
 
+void formatFilePath(char* path);
+
+void allocateError();
+
+void fileError();
 
 #endif

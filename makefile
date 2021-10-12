@@ -1,4 +1,4 @@
-CFLAGS = -Wall -std=c99 -g  # gerar "warnings" detalhados e infos de depuração	
+CFLAGS = -Wall -g  # gerar "warnings" detalhados e infos de depuração	
 LDLIBS = -lm 
 CC = gcc
  

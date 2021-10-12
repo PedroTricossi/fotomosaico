@@ -12,8 +12,12 @@ typedef struct {
 } t_image;
 
 
-t_image* readTiles();
+t_image** readTiles(char* dirpath, int* numTales);
 
-void saveImage(t_image *img);
+t_image* readImage(FILE* file);
+
+void buildMosaic(t_image* main_img, t_image** tiles, int* tiles_n);
+
+void saveImage(t_image *img, FILE* file);
 
 #endif
