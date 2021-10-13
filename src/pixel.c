@@ -66,8 +66,6 @@ t_pixel* newPixel(int red, int green, int blue){
 
 float meanRed(t_pixel *meanTile, t_pixel *imgImage){
 
-  //printf("%d e %d \n", imgImage->red, meanTile->red);
-
   float r_mean = (imgImage->red + meanTile->red) / 2;
 
   float delta_r = (imgImage->red - meanTile->red);

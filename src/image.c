@@ -49,12 +49,15 @@ t_image** readTiles(char* dirpath, int* numTales){
   if (*numTales < 0)
       perror("scandir");
   
-  tiles = malloc(*numTales * sizeof(t_image));
+  tiles = malloc((*numTales) * sizeof(t_image));
+
   filepath = malloc(1064 * sizeof(char));
 
   for(int i = 2; i < (*numTales); i++){
     strcpy(filepath, dirpath);
+
     formatFilePath(filepath);
+    
     strcat(filepath, dirent[i]->d_name);
 
     tiles[i] = getTiles(filepath);
@@ -63,6 +66,8 @@ t_image** readTiles(char* dirpath, int* numTales){
   }
   
   free(dirent);
+  free(filepath);
+  filepath = NULL;
 
   return tiles;
 }
@@ -79,8 +84,6 @@ t_image* readImage(FILE* file){
   if (!(strcmp(header->type, "P3")))
     pixel = getPixelP3(file, header);
 
-  fclose (file);
-
   return newImage(header, pixel);
 }
 
@@ -96,6 +99,7 @@ t_image* cropImg(t_image* main_img, int lin, int col, int width, int height){
               newPx = newPixel(255, 255, 255);
               cropPixel[i][j] = *newPx;
               free(newPx);
+              newPx = NULL;
           }
       }
 
@@ -156,13 +160,13 @@ void buildMosaic(t_image* main_img, t_image** tiles, int* tiles_n){
         croppedImg = cropImg(main_img, i, j, tile_width, tile_height);
         tile = similarTile(croppedImg->mean_color, tiles, tiles_n);
         replaceTile(main_img, i, j, tile);
-
+        freeImage(croppedImg);
+        croppedImg = NULL;
       }
-        //freeImage(croppedImg);
     }
 
-    // croppedImg = NULL;
-    // tile = NULL;
+    croppedImg = NULL;
+    tile = NULL;
 }
 
 
@@ -172,6 +176,4 @@ void saveImage(t_image *img, FILE* file){
   writeHeader(file, img->head);
   
   fwrite(img->pixels[0], sizeof(t_pixel), (img->head->height * img->head->width), file);
-
-  fclose(file);
 }

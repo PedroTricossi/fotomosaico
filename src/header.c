@@ -18,11 +18,6 @@ t_header *getTileHeader(FILE* file){
   fscanf(file, "%d", &(header->max_value));
   fscanf(file, "%d", &c);
 
-  // printf("Tipo: %s\n", header->type);
-  // printf("Linha: %d\n", header->width);
-  // printf("Coluna: %d\n", header->height);
-  // printf("Max: %d\n", header->max_value);
-
   return header;
 }
 

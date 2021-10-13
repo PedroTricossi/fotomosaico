@@ -54,6 +54,15 @@ int main (int argc, char *argv[])
   buildMosaic(image, tiles, &num_tales);
 
   saveImage(image, output_file);
+
+
+  free(tiles_path);
+  tiles_path = NULL;
+
+  freeTiles(tiles, &num_tales);
+  freeImage(image);
+  fclose(input_file);
+  fclose(output_file);
   
   return (0) ;
 }
