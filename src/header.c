@@ -4,6 +4,8 @@
 #include "header.h"
 #include "utils.h"
 
+// Pega as informações contidas no cabeçalho da imagem baseado na descrição oficial
+// NOTA PARA DEFESA -> necessário pular um bit entre o cabeçalho e a matriz de pixel
 t_cabecalho *Pegacabecalho(FILE* file){
   int c;
   t_cabecalho *cabecalho = malloc(sizeof(t_cabecalho));
@@ -20,6 +22,7 @@ t_cabecalho *Pegacabecalho(FILE* file){
   return cabecalho;
 }
 
+// Escreve o cabeçalho no arquivo
 void escreveCabecalho(FILE* file, t_cabecalho *cabecalho){
   fprintf(file, "%s\n%d %d\n%d\n", cabecalho->tipo, cabecalho->largura, cabecalho->altura, cabecalho->valor_max);
 }

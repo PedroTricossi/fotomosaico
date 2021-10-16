@@ -5,16 +5,19 @@
 #include "image.h"
 #include "utils.h"
 
+// Printa erro, caso haja algum erro durante alocação dinâmica de memória
 void erroAlocacao(){
   fprintf(stderr, RED "Erro ao alocar memória \n");
   exit (1) ;
 }
 
+// Printa erro, caso haja algum erro durante abertura de arquivo
 void erroArquivo(){
   fprintf(stderr, RED "Erro ao abrir arquivo \n");
   exit (1) ;
 }
 
+// Adiciona "/" ao caminho do diretório, caso não haja
 void formataCaminho(char* caminho){
     int last_c_index = strlen(caminho);
     if( caminho[last_c_index - 1] != '/' ){
@@ -23,6 +26,7 @@ void formataCaminho(char* caminho){
     }
 }
 
+// Aloca matriz dinamicamente baseado no terceiro modo apresentado pelo professor Maziero
 void** AlocaMatriz(int tamanho, long int largura, long int altura){
   void** m = NULL;
 
@@ -38,6 +42,7 @@ void** AlocaMatriz(int tamanho, long int largura, long int altura){
   return m;
 }
 
+// Libera memória utilizada para armazenar os Tiles
 void freeTiles(t_image** tiles, int* num_tiles){
   int i;
 
@@ -54,6 +59,7 @@ void freeTiles(t_image** tiles, int* num_tiles){
   tiles = NULL;
 }
 
+// Libera memória utilizada para armazenar imagens
 void freeImage(t_image* image){
   free(image->cabecalho);
   free(image->pixels[0]);

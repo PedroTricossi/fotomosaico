@@ -8,6 +8,7 @@
 #include "pixel.h"
 #include "utils.h"
 
+// Pega a matriz de pixels de imagem P6 (raw)
 t_pixel** pegaPixelP6(FILE* file, t_cabecalho* cabecalho){
   t_pixel** pixel = (t_pixel**) AlocaMatriz(sizeof(t_pixel), cabecalho->largura, cabecalho->altura);
 
@@ -16,6 +17,8 @@ t_pixel** pegaPixelP6(FILE* file, t_cabecalho* cabecalho){
   return pixel;
 }
 
+// Pega matriz de pixels de imagem p3 (ascii)
+// NOTA PARA DEFESA -> retira todas os espaços entre os valores de pixel, para então copiar a lista de numeros para a matrix
 t_pixel** pegaPixelP3(FILE* file, t_cabecalho* cabecalho){
   t_pixel** pixel = (t_pixel**) AlocaMatriz(sizeof(t_pixel), cabecalho->largura , cabecalho->altura);
 
@@ -45,6 +48,7 @@ t_pixel** pegaPixelP3(FILE* file, t_cabecalho* cabecalho){
     return pixel;
 }
 
+// Calcula a cor média de cada imagem ou tile (feito usando media quadrada)
 t_pixel *mediaCorQuadrada(t_cabecalho *cabecalho, t_pixel **pix){
   int i, j;
   int num = 1;
@@ -77,6 +81,7 @@ t_pixel *mediaCorQuadrada(t_cabecalho *cabecalho, t_pixel **pix){
   return mean_color;
 }
 
+// Cria um novo pixel
 t_pixel* novoPixel(int red, int green, int blue){
     t_pixel* p = malloc(sizeof(t_pixel));
 
@@ -90,6 +95,8 @@ t_pixel* novoPixel(int red, int green, int blue){
     return p;
 }
 
+
+// Calcula a distancia entre duas imagens baseado na medida Red Mean
 float vermelhoMedio(t_pixel *mediaTile, t_pixel *mediaImagem){
 
   float r_medio = (mediaImagem->red + mediaTile->red) / 2;
