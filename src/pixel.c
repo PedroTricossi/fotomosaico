@@ -8,35 +8,58 @@
 #include "pixel.h"
 #include "utils.h"
 
-t_pixel** getPixelP6(FILE* file, t_header* h){
-  t_pixel** pixel = (t_pixel**) allocateMatrixMemory(sizeof(t_pixel), h->width, h->height);
+t_pixel** pegaPixelP6(FILE* file, t_cabecalho* cabecalho){
+  t_pixel** pixel = (t_pixel**) AlocaMatriz(sizeof(t_pixel), cabecalho->largura, cabecalho->altura);
 
-  fread(pixel[0], sizeof(t_pixel), (h->height * h->width), file);
+  fread(pixel[0], sizeof(t_pixel), (cabecalho->altura * cabecalho->largura), file);
 
   return pixel;
 }
 
-t_pixel** getPixelP3(FILE* file, t_header* h){
-  return NULL;
+t_pixel** pegaPixelP3(FILE* file, t_cabecalho* cabecalho){
+  t_pixel** pixel = (t_pixel**) AlocaMatriz(sizeof(t_pixel), cabecalho->largura , cabecalho->altura);
+
+    char* aux = NULL;
+    char* tok = NULL;
+
+    unsigned char* data = malloc(cabecalho->largura * cabecalho->altura * sizeof(t_pixel));
+
+    int i = 0;
+    while(fscanf(file, "%m[^\n]", &aux) != EOF){
+        fgetc(file); 
+        tok = strtok(aux, " ");
+        while(tok != NULL){ 
+            data[i] = (unsigned char) atoi(tok);
+            i++;
+            tok = strtok(NULL, " ");
+        }
+        free(aux);
+    }
+    aux = NULL;
+
+    memcpy(pixel[0], data, cabecalho->largura * cabecalho->altura * sizeof(t_pixel));
+
+    free(data);
+    data = NULL;
+
+    return pixel;
 }
 
-t_pixel *meanSquaredColor(t_header *header, t_pixel **pix){
+t_pixel *mediaCorQuadrada(t_cabecalho *cabecalho, t_pixel **pix){
   int i, j;
   int num = 1;
-  unsigned int r = 0;
-  unsigned int g = 0;
-  unsigned int b = 0;
+  float r = 0;
+  float g = 0;
+  float b = 0;
   t_pixel *mean_color = NULL;
 
   mean_color = malloc(sizeof(t_pixel));
 
-  if(mean_color == NULL){
-    perror ("Erro ao alocar memória") ;
-    exit (1) ;
-  }
+  if(mean_color == NULL)
+    erroAlocacao();
 
-  for(i=0; i < header->height; i++){
-    for(j=0; j < header->width; j++){
+  for(i=0; i < cabecalho->altura; i++){
+    for(j=0; j < cabecalho->largura; j++){
       r += (pix[i][j].red) * (pix[i][j].red);
 
       g += (pix[i][j].green) * (pix[i][j].green);
@@ -54,8 +77,11 @@ t_pixel *meanSquaredColor(t_header *header, t_pixel **pix){
   return mean_color;
 }
 
-t_pixel* newPixel(int red, int green, int blue){
+t_pixel* novoPixel(int red, int green, int blue){
     t_pixel* p = malloc(sizeof(t_pixel));
+
+    if(p == NULL)
+      erroAlocacao();
 
     p->red = red;
     p->green = green;
@@ -64,18 +90,18 @@ t_pixel* newPixel(int red, int green, int blue){
     return p;
 }
 
-float meanRed(t_pixel *meanTile, t_pixel *imgImage){
+float vermelhoMedio(t_pixel *mediaTile, t_pixel *mediaImagem){
 
-  float r_mean = (imgImage->red + meanTile->red) / 2;
+  float r_medio = (mediaImagem->red + mediaTile->red) / 2;
 
-  float delta_r = (imgImage->red - meanTile->red);
-  float delta_g = (imgImage->green - meanTile->green);
-  float delta_b = (imgImage->blue - meanTile->blue);
+  float delta_r = (mediaImagem->red - mediaTile->red);
+  float delta_g = (mediaImagem->green - mediaTile->green);
+  float delta_b = (mediaImagem->blue - mediaTile->blue);
 
   float delta_c = sqrt(
-                    ((2 + r_mean/2) * (delta_r * delta_r)) + 
+                    ((2 + r_medio/2) * (delta_r * delta_r)) + 
                     (4 * delta_g * delta_g) + 
-                    ((2 + (255 - r_mean) / 256) * delta_b * delta_b ));
+                    ((2 + (255 - r_medio) / 256) * delta_b * delta_b ));
   
   return delta_c;
 }

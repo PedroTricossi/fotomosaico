@@ -3,13 +3,22 @@
 
 #include "image.h"
 
-void** allocateMatrixMemory(int size, long int width, long int height);
+#define RED "\e[0;31m"
+#define NC "\e[0m"
+#define GREEN "\033[0;32m"
 
-void formatFilePath(char* path);
 
-void allocateError();
+#define CAMINHOTILES "./tiles20/"
+#define TAMANHOMAXIMO 1024
+#define ACONSTANTE 42
 
-void fileError();
+void erroAlocacao();
+
+void erroArquivo();
+
+void** AlocaMatriz(int size, long int width, long int height);
+
+void formataCaminho(char* path);
 
 void freeTiles(t_image** tiles, int* num_tiles);
 

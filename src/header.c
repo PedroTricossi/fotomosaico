@@ -2,27 +2,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include "header.h"
+#include "utils.h"
 
-t_header *getTileHeader(FILE* file){
+t_cabecalho *Pegacabecalho(FILE* file){
   int c;
-  t_header *header = malloc(sizeof(t_header));
+  t_cabecalho *cabecalho = malloc(sizeof(t_cabecalho));
 
-  if(header == NULL){
-    perror ("Erro ao alocar memória") ;
-    exit (1) ;
-  }
+  if(cabecalho == NULL)
+    erroAlocacao();
 
-  fscanf(file, "%s", header->type);
-  fscanf(file, "%d", &(header->width));
-  fscanf(file, "%d", &(header->height));
-  fscanf(file, "%d", &(header->max_value));
+  fscanf(file, "%s", cabecalho->tipo);
+  fscanf(file, "%d", &(cabecalho->largura));
+  fscanf(file, "%d", &(cabecalho->altura));
+  fscanf(file, "%d", &(cabecalho->valor_max));
   fscanf(file, "%d", &c);
 
-  return header;
+  return cabecalho;
 }
 
-int writeHeader(FILE* file, t_header *header){
-  fprintf(file, "%s\n%d %d\n%d\n", header->type, header->width, header->height, header->max_value);
-
-  return 1;   
+void escreveCabecalho(FILE* file, t_cabecalho *cabecalho){
+  fprintf(file, "%s\n%d %d\n%d\n", cabecalho->tipo, cabecalho->largura, cabecalho->altura, cabecalho->valor_max);
 }

@@ -3,36 +3,37 @@
 #include <string.h>
 
 #include "image.h"
+#include "utils.h"
 
-void allocateError(){
-  perror ("Erro ao Alocar memória");
+void erroAlocacao(){
+  fprintf(stderr, RED "Erro ao alocar memória \n");
   exit (1) ;
 }
 
-void fileError(){
-  perror ("Erro ao abrir arquivo");
+void erroArquivo(){
+  fprintf(stderr, RED "Erro ao abrir arquivo \n");
   exit (1) ;
 }
 
-void formatFilePath(char* path){
-    int last_c_index = strlen(path);
-    if( path[last_c_index - 1] != '/' ){
-        path[last_c_index] = '/';
-        path[last_c_index + 1] = '\0';
+void formataCaminho(char* caminho){
+    int last_c_index = strlen(caminho);
+    if( caminho[last_c_index - 1] != '/' ){
+        caminho[last_c_index] = '/';
+        caminho[last_c_index + 1] = '\0';
     }
 }
 
-void** allocateMatrixMemory(int size, long int width, long int height){
+void** AlocaMatriz(int tamanho, long int largura, long int altura){
   void** m = NULL;
 
-  m = malloc(height * sizeof(void*));
-  m[0] = malloc(height * width * size);
+  m = malloc(altura * sizeof(void*));
+  m[0] = malloc(altura * largura * tamanho);
 
   if (m == NULL || m[0] == NULL)
-    allocateError();
+    erroAlocacao();
     
-  for (int i=1; i < height; i++)
-      m[i] = m[0] + i * width * size;
+  for (int i=1; i < altura; i++)
+      m[i] = m[0] + i * largura * tamanho;
 
   return m;
 }
@@ -41,10 +42,10 @@ void freeTiles(t_image** tiles, int* num_tiles){
   int i;
 
   for(i=2; i < *num_tiles; i++){
-    free(tiles[i]->head);
+    free(tiles[i]->cabecalho);
     free(tiles[i]->pixels[0]);
     free(tiles[i]->pixels);
-    free(tiles[i]->mean_color);
+    free(tiles[i]->corMedia);
 
     free(tiles[i]);
   }
@@ -54,10 +55,10 @@ void freeTiles(t_image** tiles, int* num_tiles){
 }
 
 void freeImage(t_image* image){
-  free(image->head);
+  free(image->cabecalho);
   free(image->pixels[0]);
   free(image->pixels);
-  free(image->mean_color);
+  free(image->corMedia);
 
   free(image);
   image = NULL;

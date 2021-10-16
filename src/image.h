@@ -6,18 +6,18 @@
 
 
 typedef struct {
-  t_header* head; 
-  t_pixel* mean_color; 
+  t_cabecalho* cabecalho; 
+  t_pixel* corMedia; 
   t_pixel** pixels;
 } t_image;
 
 
-t_image** readTiles(char* dirpath, int* numTales);
+t_image** leTiles(char* dirpath, int* numTales);
 
-t_image* readImage(FILE* file);
+t_image* leImagem(FILE* file);
 
-void buildMosaic(t_image* main_img, t_image** tiles, int* tiles_n);
+void criaMosaico(t_image* main_img, t_image** tiles, int* tiles_n);
 
-void saveImage(t_image *img, FILE* file);
+void salvaImagem(t_image *img, FILE* file);
 
 #endif

@@ -6,40 +6,43 @@
 #include "image.h"
 #include "header.h"
 
-t_image* newImage(t_header* h, t_pixel** pxs){
+t_image* criaImagem(t_cabecalho* cabecalho, t_pixel** pixel){
     t_image* img = malloc(sizeof(t_image));
 
-    img->head = h;
-    img->pixels = pxs;
+    if(img == NULL)
+      erroAlocacao();
 
-    img->mean_color = meanSquaredColor(h, pxs);
+    img->cabecalho = cabecalho;
+    img->pixels = pixel;
+    img->corMedia = mediaCorQuadrada(cabecalho, pixel);
 
     return img;
 }
 
-t_image *getTiles(char* tile){
+t_image *pegaTiles(char* tile){
   FILE* file;
-  t_header *header = NULL;
+  t_cabecalho *cabecalho = NULL;
   t_pixel **pixel = NULL;
 
   file = fopen (tile, "r") ;
 
   if (!file)
-  {
-    perror ("Erro ao abrir arquivo") ;
-    exit (1) ;
-  }
+    erroArquivo();
 
-  header = getTileHeader(file);
+  cabecalho = Pegacabecalho(file);
 
-  pixel = getPixelP6(file, header);
+  if (!(strcmp(cabecalho->tipo, "P6")))
+    pixel = pegaPixelP6(file, cabecalho);
+
+  if (!(strcmp(cabecalho->tipo, "P3")))
+    pixel = pegaPixelP3(file, cabecalho);
 
   fclose (file);
 
-  return newImage(header, pixel);
+  return criaImagem(cabecalho, pixel);
 }
 
-t_image** readTiles(char* dirpath, int* numTales){
+t_image** leTiles(char* dirpath, int* numTales){
   char *filepath;
   struct dirent** dirent;
   t_image** tiles;
@@ -47,23 +50,28 @@ t_image** readTiles(char* dirpath, int* numTales){
   *numTales = scandir(dirpath, &dirent, NULL, alphasort);
 
   if (*numTales < 0)
-      perror("scandir");
+    erroArquivo();
   
   tiles = malloc((*numTales) * sizeof(t_image));
-
   filepath = malloc(1064 * sizeof(char));
+
+  if( tiles == NULL || filepath == NULL)
+    erroAlocacao();
 
   for(int i = 2; i < (*numTales); i++){
     strcpy(filepath, dirpath);
 
-    formatFilePath(filepath);
+    formataCaminho(filepath);
     
     strcat(filepath, dirent[i]->d_name);
 
-    tiles[i] = getTiles(filepath);
+    tiles[i] = pegaTiles(filepath);
 
     free(dirent[i]);
   }
+
+  fprintf(stderr, GREEN "Foram lidos %d tiles\n", *numTales);
+  fprintf(stderr, GREEN "Os tiles são do tamanhos %dX%d\n", tiles[42]->cabecalho->altura, tiles[42]->cabecalho->largura);
   
   free(dirent);
   free(filepath);
@@ -72,54 +80,59 @@ t_image** readTiles(char* dirpath, int* numTales){
   return tiles;
 }
 
-t_image* readImage(FILE* file){
-  t_header *header = NULL;
+t_image* leImagem(FILE* file){
+  t_cabecalho *cabecalho = NULL;
   t_pixel **pixel = NULL;
 
-  header = getTileHeader(file);
+  cabecalho = Pegacabecalho(file);
 
-  if (!(strcmp(header->type, "P6")))
-    pixel = getPixelP6(file, header);
+  if (!(strcmp(cabecalho->tipo, "P6")))
+    pixel = pegaPixelP6(file, cabecalho);
 
-  if (!(strcmp(header->type, "P3")))
-    pixel = getPixelP3(file, header);
+  if (!(strcmp(cabecalho->tipo, "P3")))
+    pixel = pegaPixelP3(file, cabecalho);
+  
+  fprintf(stderr, GREEN "O tamanho da imagem principal é do tipo %s e de tamanho %dX%d\n", cabecalho->tipo, cabecalho->altura, cabecalho->largura);
 
-  return newImage(header, pixel);
+  return criaImagem(cabecalho, pixel);
 }
 
-t_image* cropImg(t_image* main_img, int lin, int col, int width, int height){
-    t_pixel** cropPixel = (t_pixel**) allocateMatrixMemory(sizeof(t_pixel), width, height);
+t_image* cortaImagem(t_image* main_img, int lin, int col, int largura, int altura){
+    t_pixel** cropPixel = (t_pixel**) AlocaMatriz(sizeof(t_pixel), largura, altura);
     t_pixel* newPx = NULL;
 
-    for(int i = 0; i < height; i++)
-      for(int j = 0; j < width; j++){
-          if( (lin + i < main_img->head->height) && (col + j < main_img->head->width) )
+    for(int i = 0; i < altura; i++)
+      for(int j = 0; j < largura; j++){
+          if( (lin + i < main_img->cabecalho->altura) && (col + j < main_img->cabecalho->largura) )
               cropPixel[i][j] = main_img->pixels[i + lin][j + col];
           else {
-              newPx = newPixel(255, 255, 255);
+              newPx = novoPixel(255, 255, 255);
               cropPixel[i][j] = *newPx;
               free(newPx);
               newPx = NULL;
           }
       }
 
-    t_header* h = malloc(sizeof(t_header));
+    t_cabecalho* cabecalho = malloc(sizeof(t_cabecalho));
 
-    h->width = width;
-    h->height = height;
+    if (cabecalho == NULL)
+      erroAlocacao();
 
-    return newImage(h, cropPixel);
+    cabecalho->largura = largura;
+    cabecalho->altura = altura;
+
+    return criaImagem(cabecalho, cropPixel);
 }
 
-t_image* similarTile(t_pixel* main_color, t_image** tiles, int* tiles_n){
+t_image* pegaSimilar(t_pixel* main_color, t_image** tiles, int* tiles_n){
     int pos = 42;
     int i;
     float current_c = 0;
     
-    float closest_c = meanRed(main_color, tiles[pos]->mean_color); 
+    float closest_c = vermelhoMedio(main_color, tiles[pos]->corMedia); 
     
     for(i = 2; i < (*tiles_n); i++){
-        current_c = meanRed(main_color, tiles[i]->mean_color);
+        current_c = vermelhoMedio(main_color, tiles[i]->corMedia);
         if(closest_c > current_c){
             closest_c = current_c;
             pos = i;
@@ -129,25 +142,20 @@ t_image* similarTile(t_pixel* main_color, t_image** tiles, int* tiles_n){
     return tiles[pos];
 }
 
-void replaceTile(t_image* main_img, int lin, int col, t_image* tile){
+void trocaPorTile(t_image* main_img, int lin, int col, t_image* tile){
   int k, p;
-  for(k = 0; k < tile->head->height; k++){
-    for(p = 0; p < tile->head->width; p++){
-       if( (lin + k < main_img->head->height) && (col + p < main_img->head->width) )
+  for(k = 0; k < tile->cabecalho->altura; k++){
+    for(p = 0; p < tile->cabecalho->largura; p++){
+       if( (lin + k < main_img->cabecalho->altura) && (col + p < main_img->cabecalho->largura) )
         main_img->pixels[lin + k][col + p] = tile->pixels[k][p];
     }
   }
             
 }
 
-void buildMosaic(t_image* main_img, t_image** tiles, int* tiles_n){
-    if(*tiles_n < 1){
-        fprintf(stderr, "No tiles were found to be used in the mosaic.\n");
-        exit(1);
-    }
-
-    int tile_height = tiles[42]->head->height;
-    int tile_width = tiles[42]->head->width;
+void criaMosaico(t_image* main_img, t_image** tiles, int* tiles_n){
+    int tile_altura = tiles[42]->cabecalho->altura;
+    int tile_largura = tiles[42]->cabecalho->largura;
 
     int i, j;
     
@@ -155,11 +163,11 @@ void buildMosaic(t_image* main_img, t_image** tiles, int* tiles_n){
     t_image* croppedImg = NULL;
     
     
-    for(i = 2; i < main_img->head->height; i+= tile_height){
-      for(j = 2; j < main_img->head->width; j+= tile_width){
-        croppedImg = cropImg(main_img, i, j, tile_width, tile_height);
-        tile = similarTile(croppedImg->mean_color, tiles, tiles_n);
-        replaceTile(main_img, i, j, tile);
+    for(i = 2; i < main_img->cabecalho->altura; i+= tile_altura){
+      for(j = 2; j < main_img->cabecalho->largura; j+= tile_largura){
+        croppedImg = cortaImagem(main_img, i, j, tile_largura, tile_altura);
+        tile = pegaSimilar(croppedImg->corMedia, tiles, tiles_n);
+        trocaPorTile(main_img, i, j, tile);
         freeImage(croppedImg);
         croppedImg = NULL;
       }
@@ -171,9 +179,21 @@ void buildMosaic(t_image* main_img, t_image** tiles, int* tiles_n){
 
 
 
-void saveImage(t_image *img, FILE* file){
+void salvaImagem(t_image *img, FILE* file){
+  int i, j;
 
-  writeHeader(file, img->head);
-  
-  fwrite(img->pixels[0], sizeof(t_pixel), (img->head->height * img->head->width), file);
+  escreveCabecalho(file, img->cabecalho);
+  fprintf(file, "0 \n");
+
+  if (!(strcmp(img->cabecalho->tipo, "P6")))
+    fwrite(img->pixels[0], sizeof(t_pixel), (img->cabecalho->altura * img->cabecalho->largura), file);
+
+
+  if (!(strcmp(img->cabecalho->tipo, "P3"))){
+    for(i=0; i < img->cabecalho->altura;i++){
+      for(j=0; j < img->cabecalho->largura; j++){
+        fprintf(file, "%d %d %d\n", img->pixels[i][j].red, img->pixels[i][j].green, img->pixels[i][j].blue);
+      }
+    }
+  }
 }

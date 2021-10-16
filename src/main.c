@@ -2,43 +2,47 @@
 #include <stdlib.h> 
 #include <unistd.h>
 #include <string.h>
+
 #include "image.h"
 #include "utils.h"
 
-#define TILESPATH "./tiles20/"
-#define IMAGEPATH "photo5129875249075169750.ppm"
-#define MAXWORDSIZE 1024
 
 int main (int argc, char *argv[])
 {
-  FILE* input_file = stdin;
-  FILE* output_file = stdout;
+  FILE* arquivoEntrada = stdin;
+  FILE* arquivoSaida = stdout;
   t_image **tiles;
-  t_image *image;
+  t_image *imagem;
   int num_tales;
   int option;
-  char* tiles_path;
+  char* diretorioTiles;
 
   opterr = 0;
-  tiles_path = malloc(sizeof(char) * MAXWORDSIZE);
-  strcpy(tiles_path, TILESPATH);
+
+  diretorioTiles = malloc(sizeof(char) * TAMANHOMAXIMO);
+  
+  // Se caminho para tiles não for passado como argumento, usa caminho padrão
+  strcpy(diretorioTiles, CAMINHOTILES);
 
   while ((option = getopt (argc, argv, "hp:i:o:")) != -1)
   switch (option)
     {
     case 'p':      
-      strcpy(tiles_path, optarg);
+      strcpy(diretorioTiles, optarg);
       break;
     case 'i':
-      input_file = fopen(optarg, "r");
+      arquivoEntrada = fopen(optarg, "r");
       break;
     case 'o':
-      output_file = fopen(optarg, "w+");
-      if(output_file == NULL)
-        fileError();
+      arquivoSaida = fopen(optarg, "w+");
+      if(arquivoSaida == NULL)
+        erroArquivo();
       break;
     case 'h':
-      fprintf (stderr, "Usage: -i -o -p\n");
+      fprintf (stderr, "Modo de uso:\n");
+      fprintf (stderr, "-i: Caminho para imagem principal a ser usada\n");
+      fprintf (stderr, "-o: Caminho para a imagem de saída (se não existir é criado)\n");
+      fprintf (stderr, "-p: caminho para o diretório de tiles \n");
       exit (1) ;
       break;
 
@@ -47,22 +51,33 @@ int main (int argc, char *argv[])
       exit (1) ;
     }
 
-  tiles = readTiles(tiles_path, &num_tales);
+  //Le diretório de Tiles
+  fprintf(stderr, GREEN "Iniciando Leitura das pastilhas \n");
+  tiles = leTiles(diretorioTiles, &num_tales);
 
-  image = readImage(input_file);
+  //Le imagem principal
+  fprintf(stderr, GREEN "Iniciando leitura da imagem principal\n");
+  imagem = leImagem(arquivoEntrada);
 
-  buildMosaic(image, tiles, &num_tales);
+  //Cria fotomosaico
+  fprintf(stderr, GREEN "Iniciando Montagem do mosaico\n");
+  criaMosaico(imagem, tiles, &num_tales);
 
-  saveImage(image, output_file);
+  //Salva imagem criada
+  fprintf(stderr, GREEN "Salvando imagem\n");
+  salvaImagem(imagem, arquivoSaida);
 
-
-  free(tiles_path);
-  tiles_path = NULL;
+  // Libera toda a memoria alocada
+  fprintf(stderr, GREEN "Desalocando memória\n");
+  free(diretorioTiles);
+  diretorioTiles = NULL;
 
   freeTiles(tiles, &num_tales);
-  freeImage(image);
-  fclose(input_file);
-  fclose(output_file);
+  freeImage(imagem);
+  
+  // Fecha arquicos de entrada e saida
+  fclose(arquivoEntrada);
+  fclose(arquivoSaida);
   
   return (0) ;
 }

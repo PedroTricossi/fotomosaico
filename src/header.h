@@ -4,14 +4,14 @@
 
 
 typedef struct{
-  char type[3]; 
-  int width;
-  int height; 
-  int max_value; 
-} t_header;
+  char tipo[3]; 
+  int largura;
+  int altura; 
+  int valor_max; 
+} t_cabecalho;
 
-t_header *getTileHeader(FILE* file);
+t_cabecalho *Pegacabecalho(FILE* file);
 
-int writeHeader(FILE* file, t_header *header);
+void escreveCabecalho(FILE* file, t_cabecalho *cabecalho);
 
 #endif
